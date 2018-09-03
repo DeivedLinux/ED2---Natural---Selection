@@ -3,14 +3,13 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "Exception.h"
-
+#include "../include/Exception.h"
 
 
 FILE* PartitionCreate(void)
 {
 	static unsigned partitionN;
-	unsigned char bufferStr[64];
+	char bufferStr[64];
 	FILE* newPartition = NULL;
 
 	sprintf(bufferStr,"Partitions/Partition %u.bin",partitionN);
@@ -20,4 +19,9 @@ FILE* PartitionCreate(void)
 	partitionN += 1;
 
 	return newPartition;
+}
+
+void PartitionClose(FILE* file)
+{
+	FileClose(file);
 }

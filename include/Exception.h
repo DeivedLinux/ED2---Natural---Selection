@@ -42,8 +42,8 @@
 		if(file != NULL)								\
 		{												\
 			res = fwrite(ptr, size, count, file);		\
-			if(res != (size*count))						\
-			{	printf("%i\n",res);							\
+			if(ferror(file) != 0)						\
+			{											\
 				ExceptionType = __FileWriteException__;	\
 				throw(__FileWriteException__);			\
 			}											\
@@ -70,7 +70,7 @@
 		if(file != NULL)								\
 		{												\
 			res = fread(ptr, size, count, file);		\
-			if(res != (size*count))						\
+			if(ferror(file) != 0)						\
 			{											\
 				ExceptionType = __FileReadException__;	\
 				throw(__FileReadException__);			\
@@ -100,7 +100,7 @@
 			rewind(file);								\
 			if(ferror(file))							\
 			{											\
-				ObjExceptionType = __ReWindException__;	\
+				ExceptionType = __ReWindException__;	\
 				throw(__ReWindException__);				\
 			}											\
 		}												\
@@ -128,7 +128,7 @@
 			fseek(file, offset, origin);				\
 			if(ferror(file))							\
 			{											\
-				ObjExceptionType=__FileSeekException__; \
+				ExceptionType =__FileSeekException__; 	\
 				throw(__FileSeekException__);			\
 			}											\
 		}												\
@@ -198,9 +198,9 @@
 
 
 
-extern const struct ObjException
+extern struct ObjException
 {
-	unsigned char* message;
+	const char* message;
 	unsigned long code; 
 }Exception;
 
@@ -221,7 +221,11 @@ extern enum ObjExceptionType
 	__PrintException__,
 	__ReWindException__,
 	__ClearErrorsException__,
-	__FileCloseException__
+	__FileCloseException__,
+	__ListRemoveException__,
+	__ListInsertTopException__,
+	__ListInsertBottomException__,
+	__ListInsertException__
 }ExceptionType;
 
 
@@ -229,13 +233,19 @@ extern jmp_buf exception_buffer;
 extern unsigned long  exception_code;
 			
 extern enum ObjExceptionType ExceptionType;
-extern const struct ObjException NullPointerException;
-extern const struct ObjException FileOpenException;
-extern const struct ObjException Exception;
-extern const struct ObjException FileWriteException;
-extern const struct ObjException FileReadException;
-extern const struct ObjException ReWindExeption;
-extern const struct ObjException FileSeekException;
-extern const struct ObjException ClearErrorsException;
-extern const struct ObjException FileCloseException;
+extern struct ObjException NullPointerException;
+extern struct ObjException FileOpenException;
+extern struct ObjException Exception;
+extern struct ObjException FileWriteException;
+extern struct ObjException FileReadException;
+extern struct ObjException ReWindExeption;
+extern struct ObjException FileSeekException;
+extern struct ObjException ClearErrorsException;
+extern struct ObjException FileCloseException;
+extern struct ObjException MemoryAllocationException;
+extern struct ObjException ListRemoveException;
+extern struct ObjException ListInsertTopException;
+extern struct ObjException ListInsertBottomException;
+extern struct ObjException ListInsertException;
+
 #endif
