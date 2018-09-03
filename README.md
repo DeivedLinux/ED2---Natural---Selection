@@ -1,2 +1,2 @@
-# ED2---Natural---Selection
+# ED2 Selection With Replacement
 Algoritmo de Classificação de Partição
