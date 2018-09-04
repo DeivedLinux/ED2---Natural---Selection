@@ -26,21 +26,68 @@ static int compare(Object obj1, Object obj2)
 
 static void format(Object obj)
 {
-	printf("%i\n",((Register)obj)->rField.bit.key);
+	printf("Key:%i freeze: %i\n",((Register)obj)->rField.bit.key,((Register)obj)->rField.bit.freeze);
+}
+
+static bool allFrozen(ArrayList list)
+{
+	Register temp;
+	unsigned counter = 0;
+	unsigned listSize;
+
+	listSize = getListSize(list);
+
+	foreach_ArrayList(temp, list)
+	{
+		if(temp->rField.bit.freeze == true)
+		{
+			counter += 1;
+		}
+	}
+	
+
+	return counter == listSize?true:false;
+}
+
+static void unfreezeRecords(ArrayList list)
+{
+	Register temp;
+
+	
+	foreach_ArrayList(temp, list)
+	{
+		temp->rField.bit.freeze = false;
+	}
+
+}
+
+Register GetRegisterUnfreeze(ArrayList list)
+{
+	Register temp;
+	int i = 0;
+
+	foreach_ArrayList(temp, list)
+	{
+		if(temp->rField.bit.freeze == false)
+		{
+			
+			return (Register)removeElementList(list, temp, compare);
+		}
+	}
+
+	return NULL;
 }
 
 void SubstitutionSelection(FILE* file, int mregisters)
 {
 	FILE* partition;
 	ArrayList registers;
-	ArrayList frozenRegisters; 
 	struct Register reg;
 	Register r;
 	bool endFile = false;
-	int resWrite, resRead;
+	int resWrite, resRead = MAX_REGISTERS;
 
 	registers = newArrayList(mregisters);
-	frozenRegisters = newArrayList(mregisters); 
 
 	ReWind(file);
 	partition = PartitionCreate();
@@ -50,67 +97,52 @@ void SubstitutionSelection(FILE* file, int mregisters)
 	{
 		insertSorted(registers, newRegister(reg), compare);
 	}
-	    
-	do
+	
+	
+	while(endFile != true)
 	{
-		r = removeTopList(registers);
-		FileWrite(r, sizeof(struct Register), 1, partition, resWrite);
-		FileRead(&reg, sizeof(struct Register),1, file, resRead);
-		
-		if(resRead > 0)
+		r = GetRegisterUnfreeze(registers);
+
+		if(r != NULL)
 		{
-			if((reg.rField.bit.key < r->rField.bit.key) && (getListSize(frozenRegisters) < mregisters))
+			FileWrite(r, sizeof(struct Register), 1, partition, resWrite);
+			FileRead(&reg, sizeof(struct Register),1, file, resRead);
+			if(resRead > 0)
 			{
-				reg.rField.bit.freeze = true;
-				insertSorted(frozenRegisters, newRegister(reg), compare);
-			}
-			else if(getListSize(registers) < mregisters)
-			{
-				insertSorted(registers, newRegister(reg), compare);
-			}
-			else if(fullArrayList(frozenRegisters) == true && isEmpty(registers) == true )
-			{
-				Register temp;
-				
-				while(isEmpty(frozenRegisters))
+				if(reg.rField.bit.key < r->rField.bit.key)
 				{
-					temp = removeTopList(frozenRegisters);
-					temp->rField.bit.freeze = false;
-					insertSorted(registers,temp,compare);
+					reg.rField.bit.freeze = true;
+					r->rField.bit.freeze = reg.rField.bit.freeze;
+					r->rField.bit.key = reg.rField.bit.key;
+					r->info = reg.info;
 				}
-			}
+				else
+				{
+					reg.rField.bit.freeze = false;
+					r->rField.bit.freeze = reg.rField.bit.freeze;
+					r->rField.bit.key = reg.rField.bit.key;
+					r->info = reg.info;
+				}
+
+				insertSorted(registers, r, compare);
+			}	
 		}
-		else
+		else if(isEmpty(registers) && resRead == 0)
 		{
-			if(!isEmpty(frozenRegisters))
-			{
-				Register temp;
-
-				PartitionClose(partition);
-				partition = PartitionCreate();
-				partitionsCounter += 1;
-
-				while(!isEmpty(frozenRegisters))
-				{
-					temp = removeTopList(frozenRegisters);
-					temp->rField.bit.freeze = false;
-					insertSorted(registers,temp,compare);
-				}
-
-				foreach_ArrayList(r, registers)
-				{
-				 	FileWrite(r, sizeof(struct Register), 1, partition, resWrite);
-				}
-
-				endFile = true;
-			}
+			endFile = true;
 		}
+		else if(allFrozen(registers))
+		{
+			unfreezeRecords(registers);
+			PartitionClose(partition);
+			partition = PartitionCreate();
+			partitionsCounter += 1;
+		}
+	}
 
-	}while(endFile != true);
 
 	PartitionClose(partition);
 	destroyArrayList(registers);
-	destroyArrayList(frozenRegisters);
 
 }
 

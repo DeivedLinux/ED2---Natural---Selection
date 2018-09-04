@@ -194,10 +194,89 @@ Object removeBottomList(ArrayList list)
 	return res;
 }
 
-Object removeElement(ArrayList list, Object data, FunctionCompare comparess)
+Object removeElementList(ArrayList list, Object data, FunctionCompare compare)
 {
+	Object res;
+	Node nodeToBeReleased;
+	Node currentNode;
+	Node previousNode;
 
+	try
+	{
+		if(list != NULL)
+		{
+			if(!isEmpty(list))
+			{
+				if(compare(data, (*GetListHead(list))->data ) == 0)
+				{
+					nodeToBeReleased = *GetListHead(list);
+					*GetListHead(list) = nodeToBeReleased->next;
+					if(nodeToBeReleased->next != NULL)
+						nodeToBeReleased->next->previous = NULL;
+					res = nodeToBeReleased->data;
+					free(nodeToBeReleased);
+				}
+				else if(compare(data, (*GetListEnd(list))->data ) == 0)
+				{
+					nodeToBeReleased = *GetListEnd(list);
+					*GetListEnd(list) = nodeToBeReleased->previous;
+					nodeToBeReleased->previous->next = NULL;
+					res = nodeToBeReleased->data;
+					free(nodeToBeReleased);
+				}
+				else
+				{
+					currentNode = *GetListHead(list);
+
+					while((currentNode->next != NULL) && (compare(currentNode->data, data)))
+					{
+						previousNode = currentNode;
+						currentNode = currentNode->next;
+					}
+					if(currentNode == *GetListHead(list))
+					{
+						*GetListHead(list) = (*GetListHead(list))->next;
+						(*GetListHead(list))->next->previous = NULL;
+					}
+					else
+					{
+						
+						previousNode->next = currentNode->next;
+						currentNode->next->previous = previousNode;
+						if(currentNode->next == NULL)
+							*GetListEnd(list) = previousNode;
+
+					}
+					
+					free(currentNode);
+					res = currentNode->data;
+				}
+
+				CList(list)->size -= 1;
+			}
+			else
+			{
+				throw(__ListRemoveException__);
+			}
+		}
+		else
+		{
+			throw(__NullPointerException__);
+		}
+	}
+	catch(ListRemoveException)
+	{
+		PrintExceptionStdOut(ListRemoveException);
+	}
+	catch(NullPointerException)
+	{
+		PrintExceptionStdOut(NullPointerException);
+	}
+
+	return res;
 }
+
+
 
 void insertTopList(ArrayList list, Object data)
 {

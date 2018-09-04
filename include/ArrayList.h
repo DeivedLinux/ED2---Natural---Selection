@@ -26,7 +26,7 @@ ArrayList newArrayList(int size);
 bool isEmpty(ArrayList list);
 Object removeTopList(ArrayList list);
 Object removeBottomList(ArrayList list);
-Object removeElement(ArrayList list, Object data, FunctionCompare comparess);
+Object removeElementList(ArrayList list, Object data, FunctionCompare compare);
 void insertTopList(ArrayList list, Object data);
 void insertBottomList(ArrayList list, Object data);
 void insertSorted(ArrayList list, Object data, FunctionCompare compare);
